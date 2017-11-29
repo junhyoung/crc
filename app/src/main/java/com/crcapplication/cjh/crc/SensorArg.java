@@ -5,31 +5,34 @@ package com.crcapplication.cjh.crc;
  */
 
 public class SensorArg {
-    private String seonsorName;
-    private String seonsorValue;
+    private String sensorName;
+    private String sensorValue;
     private String nowTime;
 
-    public void setSeonsorName(String seonsorName){
-        this.seonsorName=seonsorName;
+
+    public void setSensorName(String sensorName){
+        this.sensorName=sensorName;
     }
 
-    public String getSeonsorValue() {
-        return seonsorValue;
+    public String getSensorValue() {
+        return sensorValue;
     }
 
-    public String getSeonsorName() {
-        return seonsorName;
+    public String getSensorName() {
+        return sensorName;
     }
 
     public String getNowTime() {
         return nowTime;
     }
 
-    public void setSeonsorValue(String seonsorValue) {
-        this.seonsorValue = seonsorValue;
+    public void setSensorValue(String sensorValue) {
+        this.sensorValue = sensorValue;
     }
 
     public void setNowTime(String nowTime) {
         this.nowTime = nowTime;
     }
+
+
 }

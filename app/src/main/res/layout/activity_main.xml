@@ -5,7 +5,8 @@
     android:paddingBottom="10dp"
     android:paddingTop="10dp"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:weightSum="1">
 
     <TextView
         android:id="@+id/EIsConnected"
@@ -52,9 +53,16 @@
             android:text="Send" />
     </LinearLayout>
 
-    <ListView
-        android:layout_width="wrap_content"
+    <TextView
+        android:id="@+id/step"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/message_listview"/>
+        android:text="TextView" />
+
+    <ListView
+        android:id="@+id/message_listview"
+        android:layout_width="match_parent"
+        android:layout_height="77dp"
+        android:layout_weight="2.54" />
 
 </LinearLayout>

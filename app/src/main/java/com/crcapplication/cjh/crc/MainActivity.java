@@ -76,11 +76,12 @@ import org.json.JSONObject;
 public class MainActivity extends AppCompatActivity
 {
     private final int REQUEST_BLUETOOTH_ENABLE = 100;
-
+    private String baseUrl = "http://192.168.0.14:9200/sensors/TEMP";
     private TextView mConnectionStatus;
     private EditText mInputEditText;
     private TextView EIsConnected ;
-    static    String strJson = "";
+    private TextView step ;
+    static String strJson = "";
 
     ConnectedTask mConnectedTask = null;
     static BluetoothAdapter mBluetoothAdapter;
@@ -88,14 +89,16 @@ public class MainActivity extends AppCompatActivity
     private ArrayAdapter<String> mConversationArrayAdapter;
     static boolean isConnectionError = false;
     private static final String TAG = "BluetoothClient";
-    String ip;
-    int port;
+
+    private accelatorSensor aS = new accelatorSensor();
+
 
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
 
         Button sendButton = (Button)findViewById(R.id.send_button);
@@ -108,6 +111,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        step=(TextView)findViewById(R.id.step);
         EIsConnected = (TextView) findViewById(R.id.EIsConnected);
         mConnectionStatus = (TextView)findViewById(R.id.connection_status_textview);
         mInputEditText = (EditText)findViewById(R.id.input_string_edittext);
@@ -116,7 +120,7 @@ public class MainActivity extends AppCompatActivity
         mConversationArrayAdapter = new ArrayAdapter<>( this,
                 android.R.layout.simple_list_item_1 );
         mMessageListview.setAdapter(mConversationArrayAdapter);
-
+//
         if(isConnected()){
             EIsConnected.setBackgroundColor(0xFF00CC00);
             EIsConnected.setText("Elastic is conncted");
@@ -145,6 +149,8 @@ public class MainActivity extends AppCompatActivity
             //   doConnect 함수가 호출됩니다.
             showPairedDevicesListDialog();
         }
+            //sendToElastic("Test");
+            Log.e(TAG,"TESTing");
     }
 
     @Override
@@ -276,7 +282,12 @@ public class MainActivity extends AppCompatActivity
                                 readBufferPosition = 0;
                                 publishProgress(recvMessage);
                                 Log.d(TAG, "recv message: " + recvMessage);
+
+                                checkSensor(recvMessage);
+                                Log.d(TAG,"STEP : "+ aS.getStep());
+
                                 sendToElastic(recvMessage);
+
 
 
 
@@ -297,6 +308,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onProgressUpdate(String... recvMessage) {
             mConversationArrayAdapter.insert(mConnectedDeviceName + ": " + recvMessage[0], 0);
+            step.setText("STEP : " +aS.getStep()+"SVM : "+aS.getSvm());
         }
         @Override
         protected void onPostExecute(Boolean isSucess) {
@@ -441,7 +453,7 @@ public class MainActivity extends AppCompatActivity
     public void sendToElastic(String sensor) {
         // call AsynTask to perform network operation on separate thread
         HttpAsyncTask httpTask = new HttpAsyncTask(MainActivity.this);
-        httpTask.execute("https://search-crc-s4ybidqk57blqwnobhlv2hk4hm.ap-northeast-2.es.amazonaws.com/crc/sensor/temp",sensor);
+        httpTask.execute(baseUrl,sensor);
     }
     private class HttpAsyncTask extends AsyncTask<String, Void, String> {
 
@@ -455,7 +467,7 @@ public class MainActivity extends AppCompatActivity
             mainAct.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(mainAct, "Post Succed", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(mainAct, "Post Succed", Toast.LENGTH_LONG).show();
                     try {
                         JSONArray json = new JSONArray(strJson);
                         //mainAct.tvResponse.setText(json.toString(1));
@@ -476,8 +488,8 @@ public class MainActivity extends AppCompatActivity
             long now = System.currentTimeMillis();
             Date date = new Date(now);
 
-            sensorArg.setSeonsorName("TEMP");
-            sensorArg.setSeonsorValue(urls[1]);
+            sensorArg.setSensorName("TEMP123");
+            sensorArg.setSensorValue(urls[1]);
             sensorArg.setNowTime(date.toString());
 
             return POST(urls[0],sensorArg);
@@ -488,6 +500,7 @@ public class MainActivity extends AppCompatActivity
         InputStream is = null;
         String result = "";
         try {
+            Log.d(TAG,"URL : "+url);
             URL urlCon = new URL(url);
             HttpURLConnection httpCon = (HttpURLConnection)urlCon.openConnection();
 
@@ -495,16 +508,12 @@ public class MainActivity extends AppCompatActivity
 
             // build jsonObject
             JSONObject jsonObject = new JSONObject();
-            jsonObject.accumulate("name", sensorArg.getSeonsorName());
-            jsonObject.accumulate("value", sensorArg.getSeonsorValue());
+            jsonObject.accumulate("name", sensorArg.getSensorName());
+            jsonObject.accumulate("value", sensorArg.getSensorValue());
             jsonObject.accumulate("date", sensorArg.getNowTime());
 
             // convert JSONObject to JSON to String
             json = jsonObject.toString();
-
-            // ** Alternative way to convert Person object to JSON string usin Jackson Lib
-            // ObjectMapper mapper = new ObjectMapper();
-            // json = mapper.writeValueAsString(person);
 
             // Set some headers to inform server about the type of the content
             httpCon.setRequestProperty("Accept", "application/json");
@@ -542,6 +551,19 @@ public class MainActivity extends AppCompatActivity
         }
 
         return result;
+    }
+
+    private void checkSensor(String string ){
+        Log.d(TAG,"HERE!" + string.charAt(1)+"\n");
+        switch (string.charAt(1)){
+            case '/':
+                aS.calculateStep(string);
+                break;
+            case 'm':
+                //setColor(string);
+                break;
+        }
+
     }
 
     private static String convertInputStreamToString(InputStream inputStream) throws IOException{
